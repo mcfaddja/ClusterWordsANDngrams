@@ -1,0 +1,353 @@
+\documentclass{article}[12pt]
+\setlength{\textheight}{8.5in}
+\setlength{\topmargin}{0in}
+\setlength{\oddsidemargin}{-0.0in}
+\setlength{\evensidemargin}{0in}
+\setlength{\textwidth}{6.5in}
+\usepackage{amsfonts, amsmath, amsthm, amssymb,mathrsfs}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{setspace}
+\usepackage{xcolor}
+\usepackage{mathtools}
+\usepackage[]{algorithm2e}
+\usepackage{algorithmicx}
+\usepackage{multicol}
+\pagestyle{fancy}
+\lhead{TCSS 544 - Spring 2016}
+\chead{\textbf{Clustering and \\ Dimensional Reduction Project}}
+\rhead{J. McFadden}
+\headsep = 22pt 
+\headheight = 15pt
+
+\title{Clustering and Dimensional Reduction \\
+for Large Datasets}
+\date{June 4, 2016}
+\author{Jonathan McFadden \\ University of Washington Tacoma}
+
+%\doublespacing
+
+% BEGIN PRE-AMBLE
+
+
+% Setup equation numbering 
+%\numberwithin{equation}{section} 
+
+%Equation Numbering Shortcut Commands
+\newcommand{\numbch}[1]{\setcounter{section}{#1} \setcounter{equation}{0}}
+\newcommand{\numbpr}[1]{\setcounter{subsection}{#1} \setcounter{equation}{0}}
+\newcommand{\note}{\textbf{NOTE:  }}
+
+%Formatting shortcut commands
+\newcommand{\chap}[1]{\begin{center}\begin{Large}\textbf{\underline{#1}}\end{Large}\end{center}}
+\newcommand{\prob}[1]{\textbf{\underline{Problem #1):}}}
+\newcommand{\sol}[1]{\textbf{\underline{Solution #1):}}}
+\newcommand{\MMA}{\emph{Mathematica }}
+
+%Text Shortcut Command
+\newcommand{\s}[1]{\emph{Side #1}}
+
+% Math shortcut commands
+\newcommand{\dd}[2]{\frac{d #1}{d #2}}
+\newcommand{\ddn}[3]{\frac{d^{#1} #2}{d #3^{#1}}}
+%\newcommand{\dd}[2]{\frac{\textrm{d} #1}{\textrm{d} #2}}
+%\newcommand{\ddn}[3]{\frac{\textrm{d}^{#1} #2}{\textrm{d} #3^{#1}}}
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\pdn}[3]{\frac{\partial^{#1} #2}{\partial #3^{#1}}}
+\newcommand{\infint}{\int_{-\infty}^\infty}
+\newcommand{\infiint}{\iint_{-\infty}^\infty}
+\newcommand{\infiiint}{\iiint_{-\infty}^\infty}
+\newcommand{\dint}[2]{\int_{#1}^{#2}}
+\newcommand{\intdd}[1]{\textrm{d}#1}
+\newcommand{\intddd}[1]{\textrm{d}#1}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+%\newcommand{\mat}[1]{\overleftrightarrow{\mathbf{#1}}}
+%\newcommand{\mat}[1]{\bar{\bar{\mathbf{#1}}}}
+\newcommand{\mat}[1]{\overline{\overline{\mathbf{#1}}}}
+
+%Math Text
+\newcommand{\rect}{\text{ rect}}
+\newcommand{\csch}{\text{ csch}}
+
+%Physics Shortcut Commands
+\newcommand{\h}{\mathcal{H}}
+
+
+%MRI Stuff Shortcut Commands
+\newcommand{\tno}{t_{n}}
+\newcommand{\tn}[1]{t_{n#1}}
+\newcommand{\Mno}{\vec{M}^{\left( n \right)}}
+\newcommand{\Mn}[1]{\vec{M}^{\left( n #1 \right)}}
+\newcommand{\Mnto}[1]{\vec{M}^{(n)} \left( t_{n} #1 \right)}
+\newcommand{\Mnt}[2]{\vec{M}^{(n #1)} \left( t_{n #1} #2 \right)}
+\newcommand{\rot}[2]{\mat{R}_{#1} \left( #2 \right)}
+\newcommand{\DnMat}[2]{\mat{D} \left( t_{n #1} #2 \right)}
+\newcommand{\rotINV}[2]{\mat{R}^{-1}_{#1} \left( #2 \right)}
+\newcommand{\DnMatINV}[2]{\mat{D}^{-1} \left( t_{n #1} #2 \right)}
+\newcommand{\betaNt}[2]{\beta \left( t_{n #1} #2 \right)}
+\newcommand{\TR}{\textrm{TR}}
+
+
+% Math formatting commands
+\newcommand{\stack}[2]{\stackrel{\mathclap{\normalfont\mbox{#1}}}{#2}}
+
+
+% END PRE-AMBLE
+
+
+
+\begin{document}
+
+\maketitle
+
+\begin{flushleft}
+
+Let $\mat{L} \in \mathbb{Z}^{p \times q}$ be a $p$ by $q$ matrix which describes how often any of $q \in \mathbb{Z}$ n-grams occurs in each of $p \in \mathbb{Z}$ words.  That is to say, that the number of times the $j$th "n-gram" occurs in the $i$th "word" is represented by $L_{ij} \in \mat{L}$. For simplicity, we will define $\mathfrak{W} \equiv \left\{ w_1, w_2, \cdots, w_p \right\}$ as the set of all words, with the words represented by the $w_i \in \mathfrak{W}$.  Clearly, this implies that $\left| \mathfrak{W} \right| = p$.  Similarly, we denote the set of all $n-grams$ as $\mathfrak{G} \equiv \left\{ g_1, g_2, \dots, g_q \right\}$, with the n-grams represented by the $g_j \in \mathfrak{G}$ and the cardinality of $\mathfrak{G}$ equal to $q$.  \newline
+
+For the words
+
+\begin{multicols}{3}
+	\begin{itemize}
+		\item politic
+		\item politics
+		\item political
+		\item police
+		\item diner
+		\item dinner
+		\item dinners
+		\item dining
+		\item diners
+	\end{itemize}
+\end{multicols}
+
+and the n-grams
+
+\begin{multicols}{3}
+	\begin{itemize}
+		\item c
+		\item d
+		\item i
+		\item pol
+		\item lit
+		\item tic
+		\item din
+		\item ner
+		\item ing
+		\item tics
+		\item lice
+		\item dine
+		\item ners
+		\item ning
+		\item tical
+		\item inner
+		\item litic
+		\item ining
+	\end{itemize}
+\end{multicols}
+
+
+we have $\mat{L}$ as
+
+\begin{align}
+\mat{L} = \left[ 
+	\begin{array}{c c c c c c c c c c c c c c c c c c}
+		1 & 0 & 2 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 \\
+		1 & 0 & 2 & 1 & 1 & 1 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 \\
+		1 & 0 & 2 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 1 & 0 \\
+		1 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+		0 & 1 & 1 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 \\
+		0 & 1 & 1 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 \\
+		0 & 1 & 1 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 1 & 0 & 0 \\
+		0 & 1 & 2 & 0 & 0 & 0 & 1 & 0 & 1 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 1 \\
+		0 & 1 & 1 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & 0
+	\end{array} \right]
+\end{align}
+
+For clarity, we have associated the words and n-grams with the rows and columns respectively to give the following table
+
+\end{flushleft} \begin{center}
+\begin{tabular}{l || c c c c c c c c c c c c c c c c c c}
+	 & c & d & i & pol & lit & tic & din & ner & ing & tics & lice & dine & ners & ning & tical & inner & litic & ining \\
+	\hline
+	politic & 1 & 0 & 2 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 \\
+	politics & 1 & 0 & 2 & 1 & 1 & 1 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 \\
+	political & 1 & 0 & 2 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 1 & 0 \\
+	police & 1 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+	diner & 0 & 1 & 1 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 \\
+	dinner & 0 & 1 & 1 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 \\
+	dinners & 0 & 1 & 1 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 1 & 0 & 0 \\
+	dining & 0 & 1 & 2 & 0 & 0 & 0 & 1 & 0 & 1 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 1 \\
+	diners & 0 & 1 & 1 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & 0
+\end{tabular}
+\end{center} \begin{flushleft}
+
+
+We now compute the product of $\mat{L}$ with its transpose to obtain 
+
+\begin{align}
+\mat{L}_r = \mat{L} \, \mat{L}^\intercal = \left[ 
+	\begin{array}{c c c c c c c c c}
+		9 & 9 & 9 & 4 & 2 & 2 & 2 & 4 & 2 \\
+		9 & 10 & 9 & 4 & 2 & 2 & 2 & 4 & 2 \\
+		9 & 9 & 10 & 4 & 2 & 2 & 2 & 4 & 2 \\
+		4 & 4 & 4 & 4 & 1 & 1 & 1 & 2 & 1 \\
+		2 & 2 & 2 & 1 & 5 & 4 & 4 & 4 & 5 \\
+		2 & 2 & 2 & 1 & 4 & 5 & 4 & 4 & 4 \\
+		2 & 2 & 2 & 1 & 4 & 4 & 5 & 4 & 5 \\
+		4 & 4 & 4 & 2 & 4 & 4 & 4 & 9 & 4 \\
+		2 & 2 & 2 & 1 & 5 & 4 & 5 & 4 & 6
+		\end{array} \right]
+\end{align}
+
+which we have denoted $\mat{L}_r$.  For the sake of clarity and just as above, we will also put this matrix in table form, including labels, to give the following table
+
+\end{flushleft} \begin{center}
+\begin{tabular}{l || c c c c c c c c c}
+	& $w_1$ & $w_2$ & $w_3$ & $w_4$ & $w_5$ & $w_6$ & $w_7$ & $w_8$ & $w_9$  \\
+	\hline
+	$w_1 =$ politic & 9 & 9 & 9 & 4 & 2 & 2 & 2 & 4 & 2 \\
+	$w_2 =$ politics & 9 & 10 & 9 & 4 & 2 & 2 & 2 & 4 & 2 \\
+	$w_3 =$ political & 9 & 9 & 10 & 4 & 2 & 2 & 2 & 4 & 2 \\
+	$w_4 =$ police & 4 & 4 & 4 & 4 & 1 & 1 & 1 & 2 & 1 \\
+	$w_5 =$ diner & 2 & 2 & 2 & 1 & 5 & 4 & 4 & 4 & 5 \\
+	$w_6 =$ dinner & 2 & 2 & 2 & 1 & 4 & 5 & 4 & 4 & 4 \\
+	$w_7 =$ dinners & 2 & 2 & 2 & 1 & 4 & 4 & 5 & 4 & 5 \\
+	$w_8 =$ dining & 4 & 4 & 4 & 2 & 4 & 4 & 4 & 9 & 4 \\
+	$w_9 =$ diners & 2 & 2 & 2 & 1 & 5 & 4 & 5 & 4 & 6
+\end{tabular} \newline
+\end{center} \begin{flushleft}
+
+This matrix ($\mat{L}_r$) will allow us to group words together based on the strength of their connection.  To do this we will construct as set of $p$ tuples where each tuple represents any word linked to the word represented by that tuple.  That is to say that for each word, $w_i \in \mathfrak{W}$, we have a set $\mathcal{W}_i$ whose elements are the words to which $w_i$ is linked.  Clearly, if $w_i$ is not linked to any other words, then we have $\mathcal{W}_i = \left\{ w_i \right\}$. Otherwise, we have $\mathcal{W}_i = \left\{ w_i \right\} \cup \left\{ w_k | w_k \in \mathfrak{W} \text{ and } \mat{L}_{ik} \geq v_{t} \right\}$, where $v_{t} \in \Z$ is a threshold value for determining if a word $w_k$ should be included in the set $\mathcal{W}_i$. In order to be more compact, we may rewrite this formal definition of the $\mathcal{W}_i$ as
+
+\begin{align}
+\mathcal{W}_i = \left\{ w_k | w_k = w_i \text{ or } w_k \in \mathfrak{W} \ni \mat{L}_{ik} \geq v_{t} \right\}
+\end{align}
+
+We will name connections of the type described in (3) \underline{\emph{direct connections}}.  Additionally, we may use the name \underline{\emph{0th order connections}} equivalently with \underline{\emph{direct connections}}. \newline
+
+If we now choose a threshold value of $5$ and apply this to our example to obtain the following sets
+
+\begin{multicols}{3}
+	\begin{itemize}
+		\item $\mathcal{W}_1 = \left\{ w_1, w_2, w_3 \right\}$
+		\item $\mathcal{W}_2 = \left\{ w_2, w_1, w_3 \right\}$
+		\item $\mathcal{W}_2 = \left\{ w_3, w_1, w_2 \right\}$
+		\item $\mathcal{W}_4 = \left\{ w_4 \right\}$
+		\item $\mathcal{W}_5 = \left\{ w_5, w_9 \right\}$
+		\item $\mathcal{W}_6 = \left\{ w_6 \right\}$
+		\item $\mathcal{W}_7 = \left\{ w_7, w_9 \right\}$
+		\item $\mathcal{W}_8 = \left\{ w_8 \right\}$
+		\item $\mathcal{W}_9 = \left\{ w_9, w_5, w_7 \right\}$
+	\end{itemize}
+\end{multicols}
+
+From these sets, it is clear that $w_1, w_2,$ \& $w_3$ are all strongly connected to each other; that $w_4, w_6,$ \& $w_8$ are not connected to anything; that $w_5$ \& $w_7$ strongly connect to $w_9$; and that $w_5$ \& $w_7$ do not strongly connect to each other. Recalling that we have defined
+
+\begin{multicols}{3}
+	\begin{itemize}
+		\item $w_1 = $ politic
+		\item $w_2 = $ politics
+		\item $w_3 = $ political
+		\item $w_4 = $ police
+		\item $w_5 = $ diner
+		\item $w_6 = $ dinner
+		\item $w_7 = $ dinners
+		\item $w_8 = $ dining
+		\item $w_9 = $ diners
+	\end{itemize}
+\end{multicols}
+
+It is clear, from $\mathcal{W}_1, \mathcal{W}_2,$ and $\mathcal{W}_3$ that
+
+\begin{itemize}
+	\item politic $\longrightarrow \mathcal{W}_1 = \left\{ \text{politic, politics, political} \right\}$
+	\item politics $\longrightarrow \mathcal{W}_2 = \left\{ \text{politics, politics, political} \right\}$
+	\item political $\longrightarrow \mathcal{W}_3 = \left\{ \text{political, politic, politics} \right\}$,
+\end{itemize}
+
+from $\mathcal{W}_5, \mathcal{W}_7,$ and $\mathcal{W}_9$ that
+
+\begin{itemize}
+	\item diner $\longrightarrow \mathcal{W}_5 = \left\{ \text{diner, diners} \right\}$
+	\item dinners $\longrightarrow \mathcal{W}_7 = \left\{ \text{dinners, diners} \right\}$
+	\item diners $\longrightarrow \mathcal{W}_9 = \left\{ \text{diners, diner, dinners} \right\}$,
+\end{itemize}
+
+and from $\mathcal{W}_4, \mathcal{W}_6,$ and $\mathcal{W}_8$ that \emph{police}, \emph{dinner}, and \emph{dinning} are not connected to anything. \newline
+
+Finally, we may wish to connect words through shared connections with other words.  That is to say, for any words $w_l, w_n,$ and $w_m$, that if $w_n$ and $w_m$ are both connected to $w_l$ then $w_n$ and $w_m$ may be connected to each other by virtue of their connection to $w_l$.  Thus, we will define another set of $p$ tuples for each word $w_i \in \mathfrak{W}$ such that the tuple represents any word $w_m$ that is connected to $w_i$ through either a direct connection ($w_m \in \mathcal{W}_i$) or through a shared connection with another word $w_l$, where $w_l$ is directly connected to $w_i$ ($w_l \in \mathcal{W}_i$ and $w_m \notin \mathcal{W}_i$). We will denote these tuples by $\mathcal{W}^{\star (1)}_i$ (\emph{the $(1)$ following the $\star$ in the superscript will be explained below}) and formally define them by
+
+\begin{align}
+\mathcal{W}^{\star (1)}_i = \mathcal{W}_i \cup \left\{ w_m | w_m \in \mathcal{W}_l \text{ with } w_l \in \mathcal{W}_i \right\}
+\end{align}
+
+We will name connections of the type described in (4) \underline{\emph{1st order indirect connections}}, as opposed to the \underline{\emph{direct connections}} we defined in (3).  We will also use the name \underline{\emph{1st order connections}} equivalently with \underline{\emph{1st order indirect connections}}. \newline
+
+We refer to the connections described in (4) as \underline{\emph{1st order indirect connections}} because only one shared element is required to create the connection.  This is why we have the $(1)$ following the $\star$ in the superscript.  The $(1)$ denotes that $\mathcal{W}^{\star (1)}_i$ is a set containing only 1st and 0th order connections.  It follows that we may create connections based on several shared elements.  Similar to our construction in (4), we represent these connections as tuples with
+
+\begin{align}
+\mathcal{W}^{\star (r)}_i = \mathcal{W}^{\star (r-1)}_i \cup \left\{ w_m | w_m \in \mathcal{W}^{\star (r-1)}_l \text{ with } w_l \in \mathcal{W}^{\star (r-1)}_i \right\}
+\end{align}
+
+as their formal definition for \underline{\emph{rTH order connections}}.  For example, \underline{\emph{2nd order connections}}, the definition
+
+\begin{align*}
+\mathcal{W}^{\star (2)}_i = \mathcal{W}^{\star (1)}_i \cup \left\{ w_m | w_m \in \mathcal{W}^{\star (1)}_l \text{ with } w_l \in \mathcal{W}^{\star (1)}_i \right\}
+\end{align*}
+
+is implied by the expression stated above in (5). \newline
+
+
+To see this more concretely, let us consider the words $w_k, w_l, w_m$, and $w_n$ where we have the following connections between them
+
+\begin{itemize}
+	\item $w_k$ is directly connected to $w_l$
+	\item $w_l$ is directly connected to $w_m$
+	\item $w_m$ is directly connected to $w_n$
+\end{itemize}
+
+This implies that the sets
+
+\begin{multicols}{2}
+	\begin{itemize}
+		\item $\mathcal{W}_k = \left\{ w_k, w_l \right\}$
+		\item $\mathcal{W}_l = \left\{ w_l, w_k, w_m \right\}$
+		\item $\mathcal{W}_m = \left\{ w_m, w_l, w_n \right\}$
+		\item $\mathcal{W}_n = \left\{ w_n, w_m \right\} = \mathcal{W}_m$
+	\end{itemize}
+\end{multicols}
+
+represent the 0th order connections for $w_k, w_l, w_m$, and $w_n$. From these 0th order connection sets, we can obtain the following sets 
+
+\begin{multicols}{2}
+	\begin{itemize}
+		\item $\mathcal{W}^{\star (1)}_k = \left\{ w_k, w_l \right\} \cup \left\{ w_m \right\}$
+		\item $\mathcal{W}^{\star (1)}_l = \left\{ w_l, w_k, w_m \right\} \cup \left\{ w_n \right\}$
+		\item $\mathcal{W}^{\star (1)}_m = \left\{ w_m, w_l, w_n \right\} \cup \left\{ w_k \right\}$
+		\item $\mathcal{W}^{\star (1)}_n = \left\{ w_n, w_m \right\} \cup \left\{ w_l \right\}$
+	\end{itemize}
+\end{multicols}
+
+to represent the 1st order connections for each word.  While it is clear that $w_l$ and $w_m$ cannot be connected further, it is also clear that both $w_k$ and $w_n$ may be connected further through 2nd order connections.  These second order connections for $w_k$ and $w_n$ can be represented by the sets
+
+\begin{multicols}{2}
+	\begin{itemize}
+		\item $\mathcal{W}^{\star (2)}_k = \left\{ w_k, w_l, w_m \right\} \cup \left\{ w_n \right\}$
+		\item $\mathcal{W}^{\star (2)}_n = \left\{ w_n, w_m, w_l \right\} \cup \left\{ w_k \right\}$
+	\end{itemize}
+\end{multicols}
+
+While the above sets make clear that no further connections between $w_k, w_l, w_m$, and $w_n$ are possible, in general this is not necessarily the case.  However, since $\mathfrak{W}$ is finite, $\exists r \in \Z \ni \mathcal{W}^{\star (r)}_i = \mathcal{W}^{\star (r-1)}_i, \forall w_i \in \mathfrak{W}$.  Further, since $\left| \mathfrak{W} \right| = p$, we may bound this $r$ according to $r < p$. \newline
+
+Returning to our persistent example, we see from $\mathcal{W}_1 = \mathcal{W}_2 = \mathcal{W}_2 = \left\{ w_3, w_1, w_2 \right\}$, $\mathcal{W}_4 = \left\{ w_4 \right\}$, $\mathcal{W}_6 = \left\{ w_6 \right\}$, $\mathcal{W}_8 = \left\{ w_8 \right\}$, and $\mathcal{W}_9 = \left\{ w_9, w_5, w_7 \right\}$ that these words may not be further connected.  Conversely, from $\mathcal{W}_5 = \left\{ w_5, w_9 \right\}$ and $\mathcal{W}_7 = \left\{ w_7, w_9 \right\}$, it is clear that $w_5$ and $w_7$ can be further connected through their shared connection with $w_9$.  This gives us the sets $\mathcal{W}^{\star (1)}_5 = \left\{ w_5, w_9 \right\} \cup \left\{ w_7 \right\}$ and $\mathcal{W}^{\star (1)}_7 = \left\{ w_7, w_9 \right\} \cup \left\{ w_5 \right\}$ and makes clear that there are no more connections between words, indirect or otherwise.
+
+
+
+
+
+
+
+\end{flushleft}
+\end{document}
