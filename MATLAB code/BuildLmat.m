@@ -9,7 +9,7 @@ tmpSize = size(gramsIN);
 nGrams = tmpSize(1,1);
 
 
-myLmat = zeros(nWords, nGrams);
+myLmat = sparse(nWords, nGrams);
 parpool(4)
 parfor i=1:nWords
     for j=1:nGrams
