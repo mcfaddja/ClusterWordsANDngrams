@@ -8,10 +8,10 @@ function [ newA ] = SVDgaps( A, k, testRow, testCol, terms, objcs )
 %% objcs = column labels
 
 % Size info for A.
-sizeA = size(A);
-m = sizeA(1,1);
-n = sizeA(1,2);
-
+%sizeA = size(A);
+%m = sizeA(1,1);
+%n = sizeA(1,2);
+[m, n] = size(A);
 
 
 
@@ -55,7 +55,7 @@ termsClustNum = size(UkB);
 
 % Clustering cols.
 [sortedV, VkIndex] = sort(Vk); % sort Vk vectors
-VkGapMatrix = sortedV(2:n, :) - sortedU(1:n-1, :); % calculate gaps between adjacent Vk elements
+VkGapMatrix = sortedV(2:n, :) - sortedV(1:n-1, :); % calculate gaps between adjacent Vk elements
 VkGapMeans = mean(VkGapMatrix, 1); % find mean gap size for Vk elements
 VkGapStDev = std(VkGapMatrix, 1, 1); % find std of gap size for Vk elements
 VkGapScore = (VkGapMatrix - ones(n - 1, 1) * VkGapMeans) ./ (ones( n - 1, 1) * VkGapStDev); % score the Vk gaps
