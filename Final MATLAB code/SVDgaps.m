@@ -8,10 +8,10 @@ function [ newA ] = SVDgaps( A, k, testRow, testCol, terms, objcs )
 %% objcs = column labels
 
 % Size info for A.
-sizeA = size(A);
-m = sizeA(1,1);
-n = sizeA(1,2);
-
+%sizeA = size(A);
+%m = sizeA(1,1);
+%n = sizeA(1,2);
+[m, n] = size(A);
 
 
 
