@@ -10,7 +10,7 @@ nGrams = tmpSize(1,1);
 
 
 myLmat = sparse(nWords, nGrams);
-parpool(4)
+parpool(4);
 parfor i=1:nWords
     for j=1:nGrams
         tmpSize = strfind( wordsIN{i,1}, gramsIN{j,1} );
