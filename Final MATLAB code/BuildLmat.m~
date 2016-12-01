@@ -15,22 +15,18 @@ tmpSize = size(gramsIN);
 nGrams = tmpSize(1,1); % number of n-grams
 
 
-myLmat = sparse(nWords, nGrams); % allocate sparse matrix of 0s for result
+myLmat = sparse(nWords, nGrams); % allocate sparse matrix of 0s for result.
 
 parpool(4); % start parallel pool
 parfor i=1:nWords
     for j=1:nGrams
-        % stores number of occurances in an array representing the
-        % localtions of the given n-grams within the current word.
-        tmpSize = strfind( wordsIN{i,1}, gramsIN{j,1} );
-        
+        tmpSize = strfind( wordsIN{i,1}, gramsIN{j,1} ); % stores number of 
+     occurances in array
         
         % converts array size (representing the number of occurances) to an
         % integer.
         tmpSize = size(tmpSize); 
         tmp = tmpSize(1,2);
-        
-        % store current result in the L matrix to be output.
         myLmat(i,j) = tmp;
     end
 end
