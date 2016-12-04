@@ -3,7 +3,7 @@ function [ wordsOut ] = wordListMaker( dictIN )
 %   Detailed explanation goes here
 
 
-randList = randi(258286, 50, 1);
+randList = randi(258286, 25, 1);
 wordsOut = dictIN(randList, 1);
 
 
